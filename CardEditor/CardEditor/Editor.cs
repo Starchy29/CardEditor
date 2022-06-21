@@ -25,22 +25,39 @@ namespace CardEditor
         private static Dictionary<Trait, Rectangle> hitBoxes;
         private static Keys[] lastPressed; // only one key per press
 
+        private static Rectangle textBoxEditor = new Rectangle(1150, 150, 400, 600);
+        private static List<String> letters = new List<String>();
+        private static int cursor = 0; // index of the next letter to write
+
+        private const int letDim = 20; // width / height of text box editor letters
+
         public static void Load(String name) {
             card = new Card(name);
+
+            letters.Clear();
+            String textBox = card.Text;
+            for(int i = 0; i < textBox.Length; i++) {
+                letters.Add("" + textBox[i]);
+            }
+            cursor = letters.Count;
+            selected = Trait.Name;
         }
 
         public static void New(Card.Type type) {
             card = new Card(type);
+            letters.Clear();
+            cursor = 0;
+            selected = Trait.Name;
         }
 
         public static void Update() {
             if(hitBoxes == null) {
                 hitBoxes = new Dictionary<Trait, Rectangle>();
                 hitBoxes[Trait.Name] = new Rectangle(540, 60, 520, 80);
-                hitBoxes[Trait.Cost] = new Rectangle(500, 800, 80, 80);
-                hitBoxes[Trait.Attack] = new Rectangle();
-                hitBoxes[Trait.Health] = new Rectangle();
-                hitBoxes[Trait.Text] = new Rectangle();
+                hitBoxes[Trait.Cost] = new Rectangle(500, 740, 120, 120);
+                hitBoxes[Trait.Attack] = new Rectangle(840, 740, 120, 120);
+                hitBoxes[Trait.Health] = new Rectangle(980, 740, 120, 120);
+                hitBoxes[Trait.Text] = new Rectangle(540, 500, 520, 200);
             }
 
             Keys[] pressedKeys = Keyboard.GetState().GetPressedKeys();
@@ -62,20 +79,87 @@ namespace CardEditor
                         break;
 
                     case Trait.Attack:
+                        int newAttack;
+                        if(int.TryParse(KeyToLetter(key), out newAttack)) {
+                            card.Attack = newAttack;
+                        }
                         break;
 
                     case Trait.Health:
-                        break;
-
-                    case Trait.Text:
+                        int newHealth;
+                        if(int.TryParse(KeyToLetter(key), out newHealth)) {
+                            card.Health = newHealth;
+                        }
                         break;
 
                     case Trait.Cost:
+                        int newCost;
+                        if(int.TryParse(KeyToLetter(key), out newCost)) {
+                            card.Cost = newCost;
+                        }
+                        break;
+
+                    // most complicated thing to edit here
+                    case Trait.Text:
+                        // type a key
+                        if(key == Keys.Back) {
+                            if(letters.Count > 0 && cursor > 0) {
+                                letters.RemoveAt(cursor - 1);
+                                cursor--;
+                            }
+                        }
+                        else if(key == Keys.Up) {
+                            cursor -= 20;
+                            if(cursor < 0) {
+                                cursor = 0;
+                            }
+                        }
+                        else if(key == Keys.Left) {
+                            cursor -= 1;
+                            if(cursor < 0) {
+                                cursor = 0;
+                            }
+                        }
+                        else if(key == Keys.Down) {
+                            cursor += 20;
+                            if(cursor > letters.Count) {
+                                cursor = letters.Count;
+                            }
+                        }
+                        else if(key == Keys.Right) {
+                            cursor += 1;
+                            if(cursor > letters.Count) {
+                                cursor = letters.Count;
+                            }
+                        }
+                        else {
+                            String inserter = KeyToLetter(key);
+                            if(inserter.Length > 0) {
+                                letters.Insert(cursor, inserter); // add character to name
+                                cursor++;
+                            }
+                        }
                         break;
                 }
             }
 
             lastPressed = pressedKeys;
+
+            // Special text box stuff
+            if(selected == Trait.Text) {
+                // change cursor position
+                if(Mouse.GetState().LeftButton == ButtonState.Pressed && textBoxEditor.Contains(Mouse.GetState().Position)) {
+                    Vector2 pos = Mouse.GetState().Position.ToVector2();
+                    pos -= new Vector2(textBoxEditor.X, textBoxEditor.Y); // relative to text box top-left
+                    pos.X /= letDim;
+                    pos.Y = (int)pos.Y / letDim;
+                    int rowCount = textBoxEditor.Width / letDim;
+                    cursor = (int)(pos.X + pos.Y * rowCount) + 1;
+                    if(cursor >= letters.Count) {
+                        cursor = letters.Count;
+                    }
+                }
+            }
 
             // Change selected trait on click
             if(Mouse.GetState().LeftButton == ButtonState.Pressed) {
@@ -90,6 +174,14 @@ namespace CardEditor
                     }
 
                     if(hitBoxes[option].Contains(Mouse.GetState().Position)) {
+                        if(selected == Trait.Text) {
+                            // update card text box to match edited version
+                            String mended = "";
+                            foreach(String letter in letters) {
+                                mended += letter;
+                            }
+                            card.Text = mended;
+                        }
                         selected = option;
                     }
                 }
@@ -101,13 +193,25 @@ namespace CardEditor
 
             // draw selected option
             sb.Draw(Game1.Pixel, hitBoxes[selected], Color.LightBlue * 0.5f);
+            
+            // draw text box editor
+            Rectangle bordered = textBoxEditor;
+            bordered.Inflate(10, 10);
+            sb.Draw(Game1.Pixel, bordered, Color.White);
+            int rowCount = textBoxEditor.Width / letDim;
+            Vector2 topLeftMid = new Vector2(textBoxEditor.X + letDim / 2, textBoxEditor.Y + letDim / 2); // the middle of the top left square
+            for(int i = 0; i < letters.Count; i++) {
+                Vector2 dims = Game1.Font.MeasureString(letters[i]);
+                sb.DrawString(Game1.Font, letters[i], topLeftMid - dims / 2 + letDim * new Vector2(i % rowCount, i / rowCount), Color.Black);
+            }
+
+            sb.Draw(Game1.Pixel, new Rectangle(textBoxEditor.X + cursor % rowCount * letDim - 2, textBoxEditor.Y + cursor / rowCount * letDim, 3, 20), Color.Blue);
         }
 
         // converts the keyboard key to the proper letter
         private static String KeyToLetter(Keys key) {
             String name = Enum.GetName(typeof(Keys), key);
 
-            
             if(key == Keys.Space) {
                 return " ";
             }
@@ -117,7 +221,13 @@ namespace CardEditor
             else if(key == Keys.OemComma) {
                 return ",";
             }
-            else if(name.Length > 1 && name[0] == 'D') { // check for numbers
+            else if(key == Keys.OemSemicolon) {
+                return ":";
+            }
+            else if(key == Keys.Enter) {
+                return "%"; // percent represents a line break
+            }
+            else if(name.Length == 2 && name[0] == 'D') { // check for numbers
                 return "" + name[1];
             }
             else if(name.Length == 1) { // check for regular letters
@@ -128,6 +238,16 @@ namespace CardEditor
             }
 
             return ""; // do nothing if bad key is pressed
+        }
+
+        public static void Save() {
+            card.Save();
+        }
+
+        public static void Clear() {
+            card.Text = "";
+            letters.Clear();
+            cursor = 0;
         }
     }
 }

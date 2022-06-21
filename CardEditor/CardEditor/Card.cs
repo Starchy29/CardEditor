@@ -36,6 +36,22 @@ namespace CardEditor
         public int Health { set { health = value; } }
         public int Attack { set { attack = value; } }
 
+        public String Text {
+            get { 
+                String result = "";
+                for(int i = 0; i < text.Count; i++) {
+                    result += text[i];
+                    if(i < text.Count - 1) {
+                        result += "%"; // percent represents a line break
+                    }
+                }
+                return result;
+            }
+            set { 
+                text = new List<String>(value.Split('%'));
+            }
+        }
+
         private String fileName; // track if this card was edited from a file
 
         // load from a file
@@ -146,7 +162,7 @@ namespace CardEditor
 
             // draw text box
             float lineWidth = 0.05f;
-            scale *= 0.9f; // shrink rules text
+            scale *= 0.8f; // shrink rules text
             for(int i = 0; i < text.Count; i++) {
                 DrawCentered(text[i], new Vector2(0.5f, 0.61f + lineWidth * i));
             }
@@ -162,7 +178,9 @@ namespace CardEditor
                 output.Write(health + ",");
                 output.Write(attack + "\n");
 
-                output.Write(text);
+                foreach(String line in text) {
+                    output.WriteLine(line);
+                }
 
                 // delete old card if not overwritten
                 if (fileName != name) {

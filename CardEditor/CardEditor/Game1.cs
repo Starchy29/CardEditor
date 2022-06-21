@@ -24,6 +24,18 @@ namespace CardEditor
         public const int START_WIDTH = 1600;
         public const int START_HEIGHT = 900;
 
+        private static bool lastClicked = false;
+
+        private Menu currentMenu;
+
+        private Menu main;
+        private Menu editor;
+        private Menu typeSelector;
+        private Menu gallery;
+        private Menu deckSelect;
+
+        private bool editCard = true; // allows card type menu to be used for editor and gallery, false is gallery
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -32,7 +44,50 @@ namespace CardEditor
             graphics.PreferredBackBufferWidth = START_WIDTH;
             graphics.PreferredBackBufferHeight = START_HEIGHT;
 
-            Editor.Load("Shock");
+            Editor.Load("Starchy");
+
+            // set up menus
+            main = new Menu();
+            main.Add(new Button(new Rectangle(500, 50, 600, 200), "Create", () => { currentMenu = typeSelector; }));
+            main.Add(new Button(new Rectangle(500, 350, 600, 200), "Gallery", () => { currentMenu = gallery; }));
+            main.Add(new Button(new Rectangle(500, 650, 600, 200), "Testing", () => { currentMenu = deckSelect; }));
+
+            typeSelector = new Menu();
+            typeSelector.Add(new Button(new Rectangle(600, 100, 400, 100), "Fortress", () => { 
+                if(editCard) {
+                    currentMenu = editor; 
+                    Editor.New(Card.Type.Fortress); 
+                } else {
+                    currentMenu = gallery;
+                }
+            }));
+            typeSelector.Add(new Button(new Rectangle(600, 250, 400, 100), "Monster", () => { 
+                currentMenu = editor; 
+                Editor.New(Card.Type.Monster); 
+            }));
+            typeSelector.Add(new Button(new Rectangle(600, 400, 400, 100), "Structure", () => { 
+                currentMenu = editor; 
+                Editor.New(Card.Type.Structure); 
+            }));
+            typeSelector.Add(new Button(new Rectangle(600, 550, 400, 100), "Environment", () => { 
+                currentMenu = editor; 
+                Editor.New(Card.Type.Environment); 
+            }));
+            typeSelector.Add(new Button(new Rectangle(600, 700, 400, 100), "Effect", () => { 
+                currentMenu = editor; 
+                Editor.New(Card.Type.Effect); 
+            }));
+            typeSelector.Add(new Button(new Rectangle(200, 350, 200, 200), "Back", () => { currentMenu = main; }));
+
+            editor = new Menu();
+            editor.Add(new Button(new Rectangle(200, 200, 200, 100), "Save", () => { Editor.Save(); }));
+            editor.Add(new Button(new Rectangle(200, 400, 200, 100), "Clear", () => { Editor.Clear(); }));
+            editor.Add(new Button(new Rectangle(200, 600, 200, 100), "Back", () => { currentMenu = typeSelector; }));
+
+            gallery = new Menu();
+            editor.Add(new Button(new Rectangle(100, 625, 150, 150), "Back", () => { currentMenu = typeSelector; }));
+
+            currentMenu = main;
         }
 
         /// <summary>
@@ -86,8 +141,13 @@ namespace CardEditor
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
+    
+            currentMenu.Update();
+            if(currentMenu == editor) {
+                Editor.Update();
+            }
 
-            Editor.Update();
+            lastClicked = Mouse.GetState().LeftButton == ButtonState.Pressed;
 
             base.Update(gameTime);
         }
@@ -101,10 +161,17 @@ namespace CardEditor
             GraphicsDevice.Clear(Color.Gray * 0.2f);
 
             spriteBatch.Begin();
-            Editor.Draw(spriteBatch);
+            currentMenu.Draw(spriteBatch);
+            if(currentMenu == editor) {
+                Editor.Draw(spriteBatch);
+            }
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        public static bool JustClicked() {
+            return Mouse.GetState().LeftButton == ButtonState.Pressed && !lastClicked;
         }
     }
 }
