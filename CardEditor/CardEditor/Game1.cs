@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace CardEditor
 {
@@ -34,7 +35,7 @@ namespace CardEditor
         private Menu gallery;
         private Menu deckSelect;
 
-        private bool editCard = true; // allows card type menu to be used for editor and gallery, false is gallery
+        private static Game1 instance;
 
         public Game1()
         {
@@ -44,48 +45,55 @@ namespace CardEditor
             graphics.PreferredBackBufferWidth = START_WIDTH;
             graphics.PreferredBackBufferHeight = START_HEIGHT;
 
-            Editor.Load("Starchy");
+            instance = this;
 
             // set up menus
             main = new Menu();
-            main.Add(new Button(new Rectangle(500, 50, 600, 200), "Create", () => { currentMenu = typeSelector; }));
-            main.Add(new Button(new Rectangle(500, 350, 600, 200), "Gallery", () => { currentMenu = gallery; }));
-            main.Add(new Button(new Rectangle(500, 650, 600, 200), "Testing", () => { currentMenu = deckSelect; }));
+            main.Add(new Button(new Rectangle(500, 200, 600, 200), "Gallery", () => { currentMenu = typeSelector; }));
+            main.Add(new Button(new Rectangle(500, 500, 600, 200), "Testing", () => { 
+                currentMenu = deckSelect; 
+
+                // load decks
+                deckSelect.Clear();
+                deckSelect.Add(new Button(new Rectangle(700, 100, 200, 100), "New", () => { Editor.Save(); }));
+
+
+            }));
 
             typeSelector = new Menu();
             typeSelector.Add(new Button(new Rectangle(600, 100, 400, 100), "Fortress", () => { 
-                if(editCard) {
-                    currentMenu = editor; 
-                    Editor.New(Card.Type.Fortress); 
-                } else {
-                    currentMenu = gallery;
-                }
+                currentMenu = gallery;
+                Gallery.Load(Card.Type.Fortress);
             }));
             typeSelector.Add(new Button(new Rectangle(600, 250, 400, 100), "Monster", () => { 
-                currentMenu = editor; 
-                Editor.New(Card.Type.Monster); 
+                currentMenu = gallery;
+                Gallery.Load(Card.Type.Monster);
             }));
             typeSelector.Add(new Button(new Rectangle(600, 400, 400, 100), "Structure", () => { 
-                currentMenu = editor; 
-                Editor.New(Card.Type.Structure); 
+                currentMenu = gallery;
+                Gallery.Load(Card.Type.Structure);
             }));
             typeSelector.Add(new Button(new Rectangle(600, 550, 400, 100), "Environment", () => { 
-                currentMenu = editor; 
-                Editor.New(Card.Type.Environment); 
+                currentMenu = gallery;
+                Gallery.Load(Card.Type.Environment);
             }));
             typeSelector.Add(new Button(new Rectangle(600, 700, 400, 100), "Effect", () => { 
-                currentMenu = editor; 
-                Editor.New(Card.Type.Effect); 
+                currentMenu = gallery;
+                Gallery.Load(Card.Type.Effect);
             }));
             typeSelector.Add(new Button(new Rectangle(200, 350, 200, 200), "Back", () => { currentMenu = main; }));
 
             editor = new Menu();
-            editor.Add(new Button(new Rectangle(200, 200, 200, 100), "Save", () => { Editor.Save(); }));
-            editor.Add(new Button(new Rectangle(200, 400, 200, 100), "Clear", () => { Editor.Clear(); }));
-            editor.Add(new Button(new Rectangle(200, 600, 200, 100), "Back", () => { currentMenu = typeSelector; }));
+            editor.Add(new Button(new Rectangle(200, 150, 200, 100), "Save", () => { Editor.Save(); }));
+            editor.Add(new Button(new Rectangle(200, 300, 200, 100), "Clear", () => { Editor.Clear(); }));
+            editor.Add(new Button(new Rectangle(200, 450, 200, 100), "Back", () => { currentMenu = gallery; }));
+            editor.Add(new Button(new Rectangle(200, 600, 200, 100), "Delete", () => { Editor.Delete(); currentMenu = gallery; }));
 
             gallery = new Menu();
-            editor.Add(new Button(new Rectangle(100, 625, 150, 150), "Back", () => { currentMenu = typeSelector; }));
+            gallery.Add(new Button(new Rectangle(100, 250, 150, 150), "Back", () => { currentMenu = typeSelector; }));
+            gallery.Add(new Button(new Rectangle(100, 500, 150, 150), "Create", () => { currentMenu = editor; Editor.New(Gallery.GetCurrentType()); }));
+
+            deckSelect = new Menu(); // buttons created by main menu
 
             currentMenu = main;
         }
@@ -142,11 +150,14 @@ namespace CardEditor
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
     
-            currentMenu.Update();
             if(currentMenu == editor) {
                 Editor.Update();
             }
-
+            else if(currentMenu == gallery) {
+                Gallery.Update();
+            }
+            currentMenu.Update();
+            
             lastClicked = Mouse.GetState().LeftButton == ButtonState.Pressed;
 
             base.Update(gameTime);
@@ -165,6 +176,9 @@ namespace CardEditor
             if(currentMenu == editor) {
                 Editor.Draw(spriteBatch);
             }
+            else if(currentMenu == gallery) {
+                Gallery.Draw(spriteBatch);
+            }
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -172,6 +186,11 @@ namespace CardEditor
 
         public static bool JustClicked() {
             return Mouse.GetState().LeftButton == ButtonState.Pressed && !lastClicked;
+        }
+
+        public static void Edit(String name) {
+            instance.currentMenu = instance.editor;
+            Editor.Load(name);
         }
     }
 }

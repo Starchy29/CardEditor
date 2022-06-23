@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -192,7 +193,9 @@ namespace CardEditor
             card.Draw(sb, new Rectangle(500, 20, 600, 0));
 
             // draw selected option
-            sb.Draw(Game1.Pixel, hitBoxes[selected], Color.LightBlue * 0.5f);
+            if(hitBoxes != null) {
+                sb.Draw(Game1.Pixel, hitBoxes[selected], Color.LightBlue * 0.5f);
+            }
             
             // draw text box editor
             Rectangle bordered = textBoxEditor;
@@ -224,6 +227,12 @@ namespace CardEditor
             else if(key == Keys.OemSemicolon) {
                 return ":";
             }
+            else if(key == Keys.OemPlus) {
+                return "+";
+            }
+            else if(key == Keys.OemMinus) {
+                return "-";
+            }
             else if(key == Keys.Enter) {
                 return "%"; // percent represents a line break
             }
@@ -241,13 +250,22 @@ namespace CardEditor
         }
 
         public static void Save() {
-            card.Save();
+            if(File.Exists("Content\\Cards\\" + card.FileName + ".card")) {
+                Gallery.Remove(card.FileName);
+            }
+            card.Save(); // middle because it updates file name
+            Gallery.Add(card.Name);
         }
 
         public static void Clear() {
             card.Text = "";
             letters.Clear();
             cursor = 0;
+        }
+
+        public static void Delete() {
+            Gallery.Remove(card.FileName);
+            card.Delete();
         }
     }
 }

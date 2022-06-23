@@ -31,5 +31,9 @@ namespace CardEditor
                 button.Draw(sb);
             }
         }
+
+        public void Clear() {
+            buttons.Clear();
+        }
     }
 }

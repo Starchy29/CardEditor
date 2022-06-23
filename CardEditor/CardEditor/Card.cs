@@ -32,7 +32,10 @@ namespace CardEditor
             get { return name; }
             set { name = value; }
         }
-        public int Cost { set { cost = value; } }
+        public int Cost { 
+            get { return cost; }
+            set { cost = value; } 
+        }
         public int Health { set { health = value; } }
         public int Attack { set { attack = value; } }
 
@@ -53,6 +56,7 @@ namespace CardEditor
         }
 
         private String fileName; // track if this card was edited from a file
+        public String FileName { get { return fileName; } }
 
         // load from a file
         public Card(String name) {
@@ -99,7 +103,7 @@ namespace CardEditor
         public Card(Type type) {
             this.type = type;
 
-            name = "New Card";
+            name = "Name";
             text = new List<String>();
             cost = 0;
             health = 0;
@@ -162,7 +166,7 @@ namespace CardEditor
 
             // draw text box
             float lineWidth = 0.05f;
-            scale *= 0.8f; // shrink rules text
+            scale *= 0.7f; // shrink rules text
             for(int i = 0; i < text.Count; i++) {
                 DrawCentered(text[i], new Vector2(0.5f, 0.61f + lineWidth * i));
             }
@@ -194,6 +198,14 @@ namespace CardEditor
             finally {
                 output.Close();
             }
+        }
+
+        public void Delete() {
+            File.Delete("Content\\Cards\\" + fileName + ".card");
+        }
+
+        public static int GetHeight(int width) {
+            return width * Game1.Fortress.Height / Game1.Fortress.Width;
         }
     }
 }

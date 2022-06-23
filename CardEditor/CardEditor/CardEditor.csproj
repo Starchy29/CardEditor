@@ -43,7 +43,9 @@
   <ItemGroup>
     <Compile Include="Button.cs" />
     <Compile Include="Card.cs" />
+    <Compile Include="DeckMaker.cs" />
     <Compile Include="Editor.cs" />
+    <Compile Include="Gallery.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="Program.cs" />
