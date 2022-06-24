@@ -212,7 +212,7 @@ namespace CardEditor
         }
 
         // converts the keyboard key to the proper letter
-        private static String KeyToLetter(Keys key) {
+        public static String KeyToLetter(Keys key) {
             String name = Enum.GetName(typeof(Keys), key);
 
             if(key == Keys.Space) {

@@ -34,6 +34,7 @@ namespace CardEditor
         private Menu typeSelector;
         private Menu gallery;
         private Menu deckSelect;
+        private Menu deckEditor;
 
         private static Game1 instance;
 
@@ -52,12 +53,7 @@ namespace CardEditor
             main.Add(new Button(new Rectangle(500, 200, 600, 200), "Gallery", () => { currentMenu = typeSelector; }));
             main.Add(new Button(new Rectangle(500, 500, 600, 200), "Testing", () => { 
                 currentMenu = deckSelect; 
-
-                // load decks
-                deckSelect.Clear();
-                deckSelect.Add(new Button(new Rectangle(700, 100, 200, 100), "New", () => { Editor.Save(); }));
-
-
+                SetUpDeckSelect();
             }));
 
             typeSelector = new Menu();
@@ -94,6 +90,10 @@ namespace CardEditor
             gallery.Add(new Button(new Rectangle(100, 500, 150, 150), "Create", () => { currentMenu = editor; Editor.New(Gallery.GetCurrentType()); }));
 
             deckSelect = new Menu(); // buttons created by main menu
+
+            deckEditor = new Menu();
+            deckEditor.Add(new Button(new Rectangle(100, 250, 150, 150), "Back", () => { DeckMaker.Save(); SetUpDeckSelect(); currentMenu = deckSelect; }));
+            deckEditor.Add(new Button(new Rectangle(100, 500, 150, 150), "View", () => { DeckMaker.View(); }));
 
             currentMenu = main;
         }
@@ -156,6 +156,9 @@ namespace CardEditor
             else if(currentMenu == gallery) {
                 Gallery.Update();
             }
+            else if(currentMenu == deckEditor) {
+                DeckMaker.Update();
+            }
             currentMenu.Update();
             
             lastClicked = Mouse.GetState().LeftButton == ButtonState.Pressed;
@@ -179,9 +182,20 @@ namespace CardEditor
             else if(currentMenu == gallery) {
                 Gallery.Draw(spriteBatch);
             }
+            else if(currentMenu == deckEditor) {
+                DeckMaker.Draw(spriteBatch);
+            }
             spriteBatch.End();
 
             base.Draw(gameTime);
+        }
+
+        private void SetUpDeckSelect() {
+            // load decks
+            deckSelect.Clear();
+            deckSelect.Add(new Button(new Rectangle(600, 50, 400, 100), "New", () => { currentMenu = deckEditor; DeckMaker.New(); }));
+
+
         }
 
         public static bool JustClicked() {

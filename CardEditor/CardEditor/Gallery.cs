@@ -38,7 +38,17 @@ namespace CardEditor
             SetupRectangles();
         }
 
-        public static void LoadDeck(String name) {
+        public static void LoadDeck(List<CardWithCount> cardList) {
+            cards = new List<Card>();
+
+            foreach(CardWithCount cardBundle in cardList) {
+                for(int i = 0; i < cardBundle.Count; i++) {
+                    cards.Add(new Card(cardBundle.Name));
+                }
+            }
+
+            Sort();
+
             SetupRectangles();
         }
 
