@@ -57,7 +57,7 @@ namespace CardEditor
                 hitBoxes[Trait.Cost] = new Rectangle(500, 740, 120, 120);
                 hitBoxes[Trait.Attack] = new Rectangle(840, 740, 120, 120);
                 hitBoxes[Trait.Health] = new Rectangle(980, 740, 120, 120);
-                hitBoxes[Trait.Text] = new Rectangle(540, 500, 520, 200);
+                hitBoxes[Trait.Text] = textBoxEditor;
             }
 
             Text.Update();

@@ -166,7 +166,7 @@ namespace CardEditor
 
             // draw text box
             float lineWidth = 0.05f;
-            scale *= 0.7f; // shrink rules text
+            scale *= 0.5f; // shrink rules text
             for(int i = 0; i < text.Count; i++) {
                 DrawCentered(text[i], new Vector2(0.5f, 0.61f + lineWidth * i));
             }
