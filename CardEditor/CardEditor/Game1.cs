@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.IO;
 
 namespace CardEditor
 {
@@ -50,7 +51,7 @@ namespace CardEditor
 
             // set up menus
             main = new Menu();
-            main.Add(new Button(new Rectangle(500, 200, 600, 200), "Gallery", () => { currentMenu = typeSelector; }));
+            main.Add(new Button(new Rectangle(500, 200, 600, 200), "Gallery", () => { currentMenu = typeSelector; Gallery.JustViewing = false; }));
             main.Add(new Button(new Rectangle(500, 500, 600, 200), "Testing", () => { 
                 currentMenu = deckSelect; 
                 SetUpDeckSelect();
@@ -87,13 +88,20 @@ namespace CardEditor
 
             gallery = new Menu();
             gallery.Add(new Button(new Rectangle(100, 250, 150, 150), "Back", () => { currentMenu = typeSelector; }));
-            gallery.Add(new Button(new Rectangle(100, 500, 150, 150), "Create", () => { currentMenu = editor; Editor.New(Gallery.GetCurrentType()); }));
+            gallery.Add(new Button(new Rectangle(100, 500, 150, 150), "Create", () => { 
+                if(Gallery.JustViewing) {
+                    return;
+                }
+                currentMenu = editor; 
+                Editor.New(Gallery.GetCurrentType()); 
+            }));
 
             deckSelect = new Menu(); // buttons created by main menu
 
             deckEditor = new Menu();
-            deckEditor.Add(new Button(new Rectangle(100, 250, 150, 150), "Back", () => { DeckMaker.Save(); SetUpDeckSelect(); currentMenu = deckSelect; }));
-            deckEditor.Add(new Button(new Rectangle(100, 500, 150, 150), "View", () => { DeckMaker.View(); }));
+            deckEditor.Add(new Button(new Rectangle(200, 200, 150, 150), "Back", () => { DeckMaker.Save(); SetUpDeckSelect(); currentMenu = deckSelect; }));
+            deckEditor.Add(new Button(new Rectangle(200, 375, 150, 150), "View", () => { DeckMaker.View(); currentMenu = gallery; Gallery.JustViewing = true; }));
+            deckEditor.Add(new Button(new Rectangle(200, 550, 150, 150), "Delete", () => { DeckMaker.Delete(); SetUpDeckSelect(); currentMenu = deckSelect; }));
 
             currentMenu = main;
         }
@@ -193,9 +201,16 @@ namespace CardEditor
         private void SetUpDeckSelect() {
             // load decks
             deckSelect.Clear();
-            deckSelect.Add(new Button(new Rectangle(600, 50, 400, 100), "New", () => { currentMenu = deckEditor; DeckMaker.New(); }));
+            deckSelect.Add(new Button(new Rectangle(600, 50, 400, 80), "Back", () => { currentMenu = main; }));
+            deckSelect.Add(new Button(new Rectangle(600, 50 + 100, 400, 80), "New", () => { currentMenu = deckEditor; DeckMaker.New(); }));
 
-
+            String[] paths = Directory.GetFiles("Content\\Decks");
+            for(int i = 0; i < paths.Length; i++) {
+                String path = paths[i];
+                String name = path.Substring(path.LastIndexOf('\\') + 1); // get rid of directories
+                name = name.Substring(0, name.IndexOf('.')); // get rid of .deck
+                deckSelect.Add(new Button(new Rectangle(600, 50 + 100 * (i+2), 400, 80), name, () => { currentMenu = deckEditor; DeckMaker.Edit(name); }));
+            }
         }
 
         public static bool JustClicked() {

@@ -24,7 +24,6 @@ namespace CardEditor
         private static Trait selected = Trait.Name;
 
         private static Dictionary<Trait, Rectangle> hitBoxes;
-        private static Keys[] lastPressed; // only one key per press
 
         private static Rectangle textBoxEditor = new Rectangle(1150, 150, 400, 600);
         private static List<String> letters = new List<String>();
@@ -61,12 +60,9 @@ namespace CardEditor
                 hitBoxes[Trait.Text] = new Rectangle(540, 500, 520, 200);
             }
 
-            Keys[] pressedKeys = Keyboard.GetState().GetPressedKeys();
-            foreach(Keys key in pressedKeys) {
-                if(lastPressed.Contains(key)) {
-                    continue; // one key register per press
-                }
-
+            Text.Update();
+            Keys key = Text.GetCurrentKey();
+            if(key != Keys.None) {
                 switch(selected) {
                     case Trait.Name:
                         if(key == Keys.Back) {
@@ -75,27 +71,27 @@ namespace CardEditor
                                 card.Name = name.Substring(0, name.Length - 1);
                             }
                         } else {
-                            card.Name = card.Name + KeyToLetter(key); // add character to name
+                            card.Name = card.Name + Text.KeyToLetter(key); // add character to name
                         }
                         break;
 
                     case Trait.Attack:
                         int newAttack;
-                        if(int.TryParse(KeyToLetter(key), out newAttack)) {
+                        if(int.TryParse(Text.KeyToLetter(key), out newAttack)) {
                             card.Attack = newAttack;
                         }
                         break;
 
                     case Trait.Health:
                         int newHealth;
-                        if(int.TryParse(KeyToLetter(key), out newHealth)) {
+                        if(int.TryParse(Text.KeyToLetter(key), out newHealth)) {
                             card.Health = newHealth;
                         }
                         break;
 
                     case Trait.Cost:
                         int newCost;
-                        if(int.TryParse(KeyToLetter(key), out newCost)) {
+                        if(int.TryParse(Text.KeyToLetter(key), out newCost)) {
                             card.Cost = newCost;
                         }
                         break;
@@ -134,7 +130,7 @@ namespace CardEditor
                             }
                         }
                         else {
-                            String inserter = KeyToLetter(key);
+                            String inserter = Text.KeyToLetter(key);
                             if(inserter.Length > 0) {
                                 letters.Insert(cursor, inserter); // add character to name
                                 cursor++;
@@ -143,8 +139,6 @@ namespace CardEditor
                         break;
                 }
             }
-
-            lastPressed = pressedKeys;
 
             // Special text box stuff
             if(selected == Trait.Text) {
@@ -209,44 +203,6 @@ namespace CardEditor
             }
 
             sb.Draw(Game1.Pixel, new Rectangle(textBoxEditor.X + cursor % rowCount * letDim - 2, textBoxEditor.Y + cursor / rowCount * letDim, 3, 20), Color.Blue);
-        }
-
-        // converts the keyboard key to the proper letter
-        public static String KeyToLetter(Keys key) {
-            String name = Enum.GetName(typeof(Keys), key);
-
-            if(key == Keys.Space) {
-                return " ";
-            }
-            else if(key == Keys.OemPeriod) {
-                return ".";
-            }
-            else if(key == Keys.OemComma) {
-                return ",";
-            }
-            else if(key == Keys.OemSemicolon) {
-                return ":";
-            }
-            else if(key == Keys.OemPlus) {
-                return "+";
-            }
-            else if(key == Keys.OemMinus) {
-                return "-";
-            }
-            else if(key == Keys.Enter) {
-                return "%"; // percent represents a line break
-            }
-            else if(name.Length == 2 && name[0] == 'D') { // check for numbers
-                return "" + name[1];
-            }
-            else if(name.Length == 1) { // check for regular letters
-                if(Keyboard.GetState().IsKeyUp(Keys.RightShift)) { // lowercase if shift is not held
-                    name = name.ToLower();
-                }
-                return name;
-            }
-
-            return ""; // do nothing if bad key is pressed
         }
 
         public static void Save() {

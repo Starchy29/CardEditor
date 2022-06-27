@@ -21,6 +21,8 @@ namespace CardEditor
         private const int PER_ROW = 4;
         private const int WIDTH = 250;
 
+        public static bool JustViewing = false;
+
         public static void Load(Card.Type type) {
             String[] paths = Directory.GetFiles("Content\\Cards");
             cards = new List<Card>();
@@ -83,12 +85,14 @@ namespace CardEditor
         public static void Update() {
             // edit a card if it is clicked
             MouseState mouse = Mouse.GetState();
-            if(Game1.JustClicked()) {
-                for(int i = 0; i < cards.Count; i++) {
-                    Rectangle tester = rects[i];
-                    tester.Y -= scroll;
-                    if(tester.Contains(mouse.Position)) {
-                        Game1.Edit(cards[i].Name);
+            if(!JustViewing) { 
+                if(Game1.JustClicked()) {
+                    for(int i = 0; i < cards.Count; i++) {
+                        Rectangle tester = rects[i];
+                        tester.Y -= scroll;
+                        if(tester.Contains(mouse.Position)) {
+                            Game1.Edit(cards[i].Name);
+                        }
                     }
                 }
             }
