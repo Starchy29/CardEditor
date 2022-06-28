@@ -242,7 +242,7 @@ namespace CardEditor
             // add to stats
             total++;
             stats[card.CardType] += amount;
-            curve[card.Cost] += amount;
+            curve[card.Cost - 1] += amount;
         }
 
         private static void Remove(Card card) {
@@ -262,7 +262,7 @@ namespace CardEditor
             // add to stats
             total--;
             stats[card.CardType]--;
-            curve[card.Cost]--;
+            curve[card.Cost - 1]--;
         }
 
         // get the names of all valid cards

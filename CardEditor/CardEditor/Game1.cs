@@ -87,7 +87,13 @@ namespace CardEditor
             editor.Add(new Button(new Rectangle(200, 600, 200, 100), "Delete", () => { Editor.Delete(); currentMenu = gallery; }));
 
             gallery = new Menu();
-            gallery.Add(new Button(new Rectangle(100, 250, 150, 150), "Back", () => { currentMenu = typeSelector; }));
+            gallery.Add(new Button(new Rectangle(100, 250, 150, 150), "Back", () => {
+                if(Gallery.JustViewing) {
+                    currentMenu = deckEditor;
+                } else {
+                    currentMenu = typeSelector;
+                }
+            }));
             gallery.Add(new Button(new Rectangle(100, 500, 150, 150), "Create", () => { 
                 if(Gallery.JustViewing) {
                     return;

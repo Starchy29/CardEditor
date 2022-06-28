@@ -36,6 +36,9 @@ namespace CardEditor
             if(key == Keys.Space) {
                 return " ";
             }
+            else if(key == Keys.OemQuotes) {
+                return "'";
+            }
             else if(key == Keys.OemPeriod) {
                 return ".";
             }
